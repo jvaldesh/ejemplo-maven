@@ -4,40 +4,38 @@ pipeline {
     stages {
         stage('Compile') {
             steps {
-                dir("/home/julio/repos/ejemplo-maven") {
-                    sh "./mvnw clean compile -e"
-                }
+                sh "./mvnw clean compile -e"
             }
         }
         
         stage('Test') {
             steps {
-                dir("/home/julio/repos/ejemplo-maven") {
-                    sh "./mvnw clean test -e"
-                }
+                sh "./mvnw clean test -e"
             }
         }
         
         stage('Package') {
             steps {
-                dir("/home/julio/repos/ejemplo-maven") {
-                    sh "./mvnw clean package -e"
-                }
+                sh "./mvnw clean package -e"
             }
         }
         
         stage('Run background') {
             steps {
-                dir("/home/julio/repos/ejemplo-maven") {
-                    sh "nohup bash mvnw spring-boot:run &"
-                    sh 'sleep 10'
-                }
+                sh "nohup bash mvnw spring-boot:run &"
+                sh 'sleep 10'
             }
         }
         
         stage('Testing') {
             steps {
                 sh "curl -X GET 'http://localhost:8081/rest/mscovid/test?msg=testing'"
+            }
+        }
+
+        stage('SonarQube analysis') {
+            withSonarQubeEnv(installationName: 'sonar') {
+                sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.7.0.1746:sonar'
             }
         }
     }
