@@ -19,6 +19,14 @@ pipeline {
                 sh "./mvnw clean package -e"
             }
         }
+
+        stage('SonarQube analysis') {
+            steps {
+                withSonarQubeEnv(installationName: 'sonarqube') {
+                    sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.7.0.1746:sonar'
+                }
+            }
+        }
         
         stage('Run background') {
             steps {
@@ -30,14 +38,6 @@ pipeline {
         stage('Testing') {
             steps {
                 sh "curl -X GET 'http://localhost:8081/rest/mscovid/test?msg=testing'"
-            }
-        }
-
-        stage('SonarQube analysis') {
-            steps {
-                withSonarQubeEnv(installationName: 'sonar') {
-                    sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.7.0.1746:sonar'
-                }
             }
         }
     }
