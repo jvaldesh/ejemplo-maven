@@ -2,25 +2,25 @@ pipeline {
     agent any
 
     stages {
-        stage('Compile') {
+        stage('compile') {
             steps {
                 sh "./mvnw clean compile -e"
             }
         }
         
-        stage('Test') {
+        stage('test') {
             steps {
                 sh "./mvnw clean test -e"
             }
         }
-        
-        stage('Package') {
+
+        stage('jar') {
             steps {
                 sh "./mvnw clean package -e"
             }
         }
-
-        stage('SonarQube analysis') {
+        
+        stage('SonarQube') {
             steps {
                 withSonarQubeEnv(installationName: 'sonarqube') {
                     sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.7.0.1746:sonar'
@@ -28,16 +28,9 @@ pipeline {
             }
         }
         
-        stage('Run background') {
+        stage('uploadNexus') {
             steps {
-                sh "nohup bash mvnw spring-boot:run &"
-                sh 'sleep 10'
-            }
-        }
-        
-        stage('Testing') {
-            steps {
-                sh "curl -X GET 'http://localhost:8081/rest/mscovid/test?msg=testing'"
+                nexusPublisher nexusInstanceId: 'nexus', nexusRepositoryId: 'test-repo', packages: [[$class: 'MavenPackage', mavenAssetList: [[classifier: '', extension: 'jar', filePath: '/home/julio/repos/ejemplo-maven/build/DevOpsUsach2020-0.0.1.jar']], mavenCoordinate: [artifactId: 'DevOpsUsach2020', groupId: 'com.devopsusach2020', packaging: 'jar', version: '0.0.1']]]
             }
         }
     }
